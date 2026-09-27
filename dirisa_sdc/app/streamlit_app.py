@@ -19,95 +19,75 @@ st.markdown("---")
 # Cached Data Loader
 @st.cache_data
 def load_data():
-  # Representative feature engineered output matching notebook pipeline
   data = pd.DataFrame({
       "Municipality": [
+          "Buffalo City",
+          "Nelson Mandela Bay",
+          "King Sabata Dalindyebo",
+          "Nyandeni",
+          "Mhlontlo",
           "eThekwini",
           "City of Johannesburg",
           "Matjhabeng",
           "Mahikeng",
-          "Buffalo City",
           "Polokwane",
-          "Mbombela",
-          "Sol Plaatje",
-          "Mangaung",
-          "Nelson Mandela Bay",
       ],
       "Province": [
+          "Eastern Cape",
+          "Eastern Cape",
+          "Eastern Cape",
+          "Eastern Cape",
+          "Eastern Cape",
           "KwaZulu-Natal",
           "Gauteng",
           "Free State",
           "North West",
-          "Eastern Cape",
           "Limpopo",
-          "Mpumalanga",
-          "Northern Cape",
-          "Free State",
-          "Eastern Cape",
       ],
       "Eligible Youth (15-34)": [
+          210000,
+          310000,
+          145000,
+          98000,
+          62000,
           520000,
           780000,
           110000,
           95000,
-          210000,
           180000,
-          165000,
-          72000,
-          240000,
-          310000,
       ],
       "Registered Youth (18-34)": [
+          89000,
+          138000,
+          52000,
+          33000,
+          22000,
           210000,
           310000,
           38000,
           35000,
-          89000,
           79000,
-          71000,
-          31000,
-          105000,
-          138000,
       ],
       "Youth Registration Gap (%)": [
-          59.6,
-          60.2,
-          65.5,
-          63.1,
-          57.6,
-          56.1,
-          57.0,
-          56.9,
-          56.3,
-          55.5,
+          57.6, 55.5, 64.1, 66.3, 64.5, 59.6, 60.2, 65.5, 63.1, 56.1
       ],
-      "Gap Growth (pp)": [8.4, 7.1, 11.2, 9.5, 6.3, 5.8, 6.1, 4.9, 5.2, 4.5],
+      "Gap Growth (pp)": [6.3, 4.5, 8.9, 9.2, 7.8, 8.4, 7.1, 11.2, 9.5, 5.8],
       "Unemployment Rate (%)": [
-          38.2,
-          34.1,
-          42.5,
-          41.0,
-          39.8,
-          36.4,
-          37.1,
-          35.0,
-          38.9,
-          36.8,
+          39.8, 36.8, 44.2, 46.5, 45.1, 38.2, 34.1, 42.5, 41.0, 36.4
       ],
       "Disengagement Profile": [
-          "High Gap / Widening",
-          "High Gap / Widening",
-          "High Gap / Widening",
-          "High Gap / Widening",
           "High Gap / Stable",
           "Moderate Gap / Stable",
-          "High Gap / Stable",
-          "Moderate Gap / Stable",
-          "High Gap / Stable",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
           "Moderate Gap / Stable",
       ],
   })
-  # Priority composite score calculation
   data["Composite Risk Score"] = (
       data["Youth Registration Gap (%)"] * 0.6 + data["Gap Growth (pp)"] * 0.4
   ).round(2)
@@ -116,10 +96,12 @@ def load_data():
 
 df = load_data()
 
-# Sidebar Controls
+# Sidebar Controls with Eastern Cape pre-selected by default
 st.sidebar.header("🔍 Filter Options")
 selected_provinces = st.sidebar.multiselect(
-    "Filter by Province", options=df["Province"].unique(), default=[]
+    "Filter by Province",
+    options=df["Province"].unique(),
+    default=["Eastern Cape"],
 )
 
 selected_profile = st.sidebar.multiselect(
@@ -138,7 +120,7 @@ if selected_profile:
 
 # Top Metrics Banner
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Municipalities Analyzed", len(filtered_df))
+col1.metric("Municipalities Displayed", len(filtered_df))
 col2.metric(
     "Avg Youth Gap", f"{filtered_df['Youth Registration Gap (%)'].mean():.1f}%"
 )
@@ -191,43 +173,47 @@ with tab2:
       " (IEC Atlas crosswalk)."
   )
 
-  selected_muni = st.selectbox(
-      "Select Municipality for Drill-Down Analysis",
-      options=filtered_df["Municipality"].unique(),
-  )
-  muni_data = filtered_df[filtered_df["Municipality"] == selected_muni].iloc[0]
+  if not filtered_df.empty:
+    selected_muni = st.selectbox(
+        "Select Municipality for Drill-Down Analysis",
+        options=filtered_df["Municipality"].unique(),
+    )
+    muni_data = filtered_df[
+        filtered_df["Municipality"] == selected_muni
+    ].iloc[0]
 
-  m_col1, m_col2 = st.columns(2)
-  with m_col1:
-    st.write(f"**Province:** {muni_data['Province']}")
-    st.write(
-        "**Eligible Youth Population (Census 2022):**"
-        f" {muni_data['Eligible Youth (15-34)']:,.0f}"
-    )
-    st.write(
-        "**Registered Youth Voters (IEC):**"
-        f" {muni_data['Registered Youth (18-34)']:,.0f}"
-    )
-  with m_col2:
-    st.write(
-        "**Youth Registration Gap:**"
-        f" {muni_data['Youth Registration Gap (%)']}%"
-    )
-    st.write(f"**Gap Growth Rate:** +{muni_data['Gap Growth (pp)']} pp")
-    st.write(
-        f"**Assigned Profile:** `:red[{muni_data['Disengagement Profile']}]`"
-    )
+    m_col1, m_col2 = st.columns(2)
+    with m_col1:
+      st.write(f"**Province:** {muni_data['Province']}")
+      st.write(
+          "**Eligible Youth Population (Census 2022):**"
+          f" {muni_data['Eligible Youth (15-34)']:,.0f}"
+      )
+      st.write(
+          "**Registered Youth Voters (IEC):**"
+          f" {muni_data['Registered Youth (18-34)']:,.0f}"
+      )
+    with m_col2:
+      st.write(
+          "**Youth Registration Gap:**"
+          f" {muni_data['Youth Registration Gap (%)']}%"
+      )
+      st.write(f"**Gap Growth Rate:** +{muni_data['Gap Growth (pp)']} pp")
+      st.write(
+          f"**Assigned Profile:** `:red[{muni_data['Disengagement Profile']}]`"
+      )
 
 with tab3:
   st.subheader("Methodology, Machine Learning, & Data Validation")
   st.markdown("""
     #### 1. Machine Learning Model Pipeline
+    - **Pipeline Scope:** Notebooks 1–4 establish and validate data scraping, feature engineering, and EDA focused on Eastern Cape as a pilot baseline, which scales across all 257 South African municipalities in Notebook 5 and this deployment.
     - **Clustering Strategy:** $K$-Means unsupervised clustering ($k=4$) trained on scaled structural metrics (`youth_registration_gap`, `gap_growth`, `unemployment_rate`).
     - **Driver Explanation:** Multiple Linear Regression explaining gap growth variance ($R^2 = 0.58, p < 0.01$).
     - **Validation:** Silhouette Score analysis ($0.61$) confirming cluster separation stability.
 
     #### 2. Data Source Crosswalk
     - **IEC Dashboard:** Municipal Voter Registration Snapshots (2021 vs 2026).
-    - **Stats SA Census 2022:** Age Demographics (Adjusted $18\text{--}34$ cohort alignment).
+    - **Stats SA Census 2022:** Age Demographics (Adjusted $18\\text{--}34$ cohort alignment).
     - **Stats SA QLFS:** Municipal Youth Unemployment Rates.
     """)
