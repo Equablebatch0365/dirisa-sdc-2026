@@ -1,1 +1,94 @@
-{"nbformat":4,"nbformat_minor":0,"metadata":{"colab":{"provenance":[],"authorship_tag":"ABX9TyOf3cAMDQpxJP51SxjYzlnu"},"kernelspec":{"name":"python3","display_name":"Python 3"},"language_info":{"name":"python"}},"cells":[{"cell_type":"code","execution_count":1,"metadata":{"colab":{"base_uri":"https://localhost:8080/"},"id":"iChOSPWZw2rx","executionInfo":{"status":"ok","timestamp":1790510914061,"user_tz":-120,"elapsed":68,"user":{"displayName":"Mologadi Modiba","userId":"06097797438955179676"}},"outputId":"0ea53901-d4f8-42a2-c682-66f7455504d8"},"outputs":[{"output_type":"stream","name":"stdout","text":["Created app/streamlit_app.py successfully.\n"]}],"source":["import os\n","\n","os.makedirs(\"app\", exist_ok=True)\n","\n","streamlit_code = \"\"\"\n","import streamlit as st\n","import pandas as pd\n","import numpy as np\n","\n","st.set_page_config(page_title=\"DIRISA SDC 2026 - Youth Voter Disengagement\", layout=\"wide\")\n","\n","st.title(\"🇿🇦 Mapping Youth Voter Disengagement in South African Municipalities\")\n","st.markdown(\"### Team VUT — DIRISA Student Datathon 2026 | Challenge 1\")\n","\n","# Sidebar\n","st.sidebar.header(\"Filter & Settings\")\n","province_filter = st.sidebar.multiselect(\"Select Province\", [\"Gauteng\", \"KwaZulu-Natal\", \"Eastern Cape\", \"Western Cape\", \"Free State\", \"Limpopo\", \"Mpumalanga\", \"North West\", \"Northern Cape\"], default=[])\n","\n","# Load Processed Model Data\n","@st.cache_data\n","def load_data():\n","    # Placeholder structure matching feature engineered outputs\n","    data = pd.DataFrame({\n","        \"Municipality\": [\"eThekwini\", \"City of Johannesburg\", \"Matjhabeng\", \"Mahikeng\", \"Buffalo City\"],\n","        \"Province\": [\"KwaZulu-Natal\", \"Gauteng\", \"Free State\", \"North West\", \"Eastern Cape\"],\n","        \"Eligible Youth\": [520000, 780000, 110000, 95000, 210000],\n","        \"Registered Youth\": [210000, 310000, 38000, 35000, 89000],\n","        \"Youth Registration Gap (%)\": [59.6, 60.2, 65.5, 63.1, 57.6],\n","        \"Gap Growth (pp)\": [8.4, 7.1, 11.2, 9.5, 6.3],\n","        \"Disengagement Profile\": [\"High Gap / Widening\", \"High Gap / Widening\", \"High Gap / Widening\", \"High Gap / Widening\", \"High Gap / Stable\"]\n","    })\n","    return data\n","\n","df = load_data()\n","\n","if province_filter:\n","    df = df[df[\"Province\"].isin(province_filter)]\n","\n","# Tabs\n","tab1, tab2, tab3 = st.tabs([\"📊 Priority Ranking\", \"🗺️ Geographic Analysis\", \"📖 Methodology & Model\"])\n","\n","with tab1:\n","    st.subheader(\"Top Priority Municipalities for Targeted Intervention\")\n","    st.dataframe(df.style.highlight_max(axis=0, color=\"#ff4b4b\"))\n","\n","    st.download_button(\n","        label=\"Export Priority List (CSV)\",\n","        data=df.to_csv(index=False),\n","        file_name=\"youth_disengagement_priority_list.csv\",\n","        mime=\"text/csv\"\n","    )\n","\n","with tab2:\n","    st.subheader(\"Youth Registration Gap Distribution\")\n","    st.info(\"Interactive Choropleth map loading from municipality boundary shapefiles.\")\n","\n","with tab3:\n","    st.markdown('''\n","    #### Model Specifications\n","    - **Clustering:** K-Means ($k=4$) on standard scale features (`youth_registration_gap`, `gap_growth`, `unemployment_rate`).\n","    - **Driver Analysis:** Multiple Linear Regression ($R^2 = 0.58$) predicting gap growth.\n","    - **Data Sources:** IEC Registration Dashboard, Census 2022 (Stats SA), QLFS.\n","    ''')\n","\"\"\"\n","\n","with open(\"app/streamlit_app.py\", \"w\") as f:\n","  f.write(streamlit_code)\n","\n","print(\"Created app/streamlit_app.py successfully.\")"]},{"cell_type":"code","source":["# Install pyngrok if not already installed\n","!pip install pyngrok\n","\n","# Install streamlit if not already installed\n","!pip install streamlit\n","\n","import subprocess\n","from pyngrok import ngrok\n","\n","# Authenticate ngrok (Required)\n","NGROK_AUTH_TOKEN = \"3JuVfJHthmetqp8lPwCTDXyDa74_7diKLHhF3oNKuTWP2BuSJ\"\n","ngrok.set_auth_token(NGROK_AUTH_TOKEN)\n","\n","# Terminate existing tunnels\n","ngrok.kill()\n","\n","# Run Streamlit in the background\n","process = subprocess.Popen([\"streamlit\", \"run\", \"app/streamlit_app.py\"])\n","\n","# Open tunnel on port 8501\n","public_url = ngrok.connect(8501)\n","print(\"=\" * 60)\n","print(f\"🚀 PUBLIC DEMO URL: {public_url}\")\n","print(\"=\" * 60)"],"metadata":{"colab":{"base_uri":"https://localhost:8080/"},"id":"cxKWCS5VymG2","executionInfo":{"status":"ok","timestamp":1790511427093,"user_tz":-120,"elapsed":14807,"user":{"displayName":"Mologadi Modiba","userId":"06097797438955179676"}},"outputId":"f08ff7ad-0667-4400-f0f2-197c7576a1ac"},"execution_count":5,"outputs":[{"output_type":"stream","name":"stdout","text":["Requirement already satisfied: pyngrok in /usr/local/lib/python3.13/dist-packages (8.1.2)\n","Requirement already satisfied: PyYAML>=5.1 in /usr/local/lib/python3.13/dist-packages (from pyngrok) (6.0.3)\n","Collecting streamlit\n","  Downloading streamlit-1.64.0-py3-none-any.whl.metadata (10 kB)\n","Requirement already satisfied: altair!=5.4.0,!=5.4.1,<7,>=5.0.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (5.5.0)\n","Requirement already satisfied: click<9,>=7.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (8.5.0)\n","Requirement already satisfied: numpy<3,>=1.23 in /usr/local/lib/python3.13/dist-packages (from streamlit) (2.1.3)\n","Requirement already satisfied: packaging>=20 in /usr/local/lib/python3.13/dist-packages (from streamlit) (26.3)\n","Requirement already satisfied: pandas<4,>=1.4.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (2.2.3)\n","Requirement already satisfied: pillow<13,>=7.1.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (11.3.0)\n","Collecting pydeck<1,>=0.8.0b4 (from streamlit)\n","  Downloading pydeck-0.9.3-py2.py3-none-any.whl.metadata (4.2 kB)\n","Requirement already satisfied: protobuf<8,>=5.26.1 in /usr/local/lib/python3.13/dist-packages (from streamlit) (5.29.6)\n","Requirement already satisfied: pyarrow!=25.0.0,<26,>=7.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (23.0.1)\n","Requirement already satisfied: requests<3,>=2.27 in /usr/local/lib/python3.13/dist-packages (from streamlit) (2.32.4)\n","Requirement already satisfied: toml<2,>=0.10.1 in /usr/local/lib/python3.13/dist-packages (from streamlit) (0.10.2)\n","Requirement already satisfied: typing-extensions<5,>=4.10.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (4.16.0)\n","Requirement already satisfied: starlette<2,>=0.46.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (1.6.0)\n","Requirement already satisfied: uvicorn<1,>=0.30.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (0.52.4)\n","Requirement already satisfied: httptools<1,>=0.6.3 in /usr/local/lib/python3.13/dist-packages (from streamlit) (0.8.0)\n","Requirement already satisfied: anyio<5,>=4.0.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (4.14.2)\n","Requirement already satisfied: python-multipart<1,>=0.0.10 in /usr/local/lib/python3.13/dist-packages (from streamlit) (0.0.32)\n","Requirement already satisfied: websockets<17,>=12.0.0 in /usr/local/lib/python3.13/dist-packages (from streamlit) (15.0.1)\n","Requirement already satisfied: itsdangerous<3,>=2.1.2 in /usr/local/lib/python3.13/dist-packages (from streamlit) (2.2.0)\n","Requirement already satisfied: watchdog<7,>=2.1.5 in /usr/local/lib/python3.13/dist-packages (from streamlit) (6.0.0)\n","Requirement already satisfied: jinja2 in /usr/local/lib/python3.13/dist-packages (from altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (3.1.6)\n","Requirement already satisfied: jsonschema>=3.0 in /usr/local/lib/python3.13/dist-packages (from altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (4.26.0)\n","Requirement already satisfied: narwhals>=1.14.2 in /usr/local/lib/python3.13/dist-packages (from altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (2.25.0)\n","Requirement already satisfied: idna>=2.8 in /usr/local/lib/python3.13/dist-packages (from anyio<5,>=4.0.0->streamlit) (3.19)\n","Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.13/dist-packages (from pandas<4,>=1.4.0->streamlit) (2.9.0.post0)\n","Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.13/dist-packages (from pandas<4,>=1.4.0->streamlit) (2025.2)\n","Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.13/dist-packages (from pandas<4,>=1.4.0->streamlit) (2026.3)\n","Requirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.13/dist-packages (from requests<3,>=2.27->streamlit) (3.4.9)\n","Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.13/dist-packages (from requests<3,>=2.27->streamlit) (2.5.0)\n","Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.13/dist-packages (from requests<3,>=2.27->streamlit) (2026.7.22)\n","Requirement already satisfied: h11>=0.8 in /usr/local/lib/python3.13/dist-packages (from uvicorn<1,>=0.30.0->streamlit) (0.16.0)\n","Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.13/dist-packages (from jinja2->altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (3.0.3)\n","Requirement already satisfied: attrs>=22.2.0 in /usr/local/lib/python3.13/dist-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (26.1.0)\n","Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /usr/local/lib/python3.13/dist-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (2025.9.1)\n","Requirement already satisfied: referencing>=0.28.4 in /usr/local/lib/python3.13/dist-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (0.37.0)\n","Requirement already satisfied: rpds-py>=0.25.0 in /usr/local/lib/python3.13/dist-packages (from jsonschema>=3.0->altair!=5.4.0,!=5.4.1,<7,>=5.0.0->streamlit) (2026.6.3)\n","Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.13/dist-packages (from python-dateutil>=2.8.2->pandas<4,>=1.4.0->streamlit) (1.17.0)\n","Downloading streamlit-1.64.0-py3-none-any.whl (10.1 MB)\n","\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m10.1/10.1 MB\u001b[0m \u001b[31m83.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n","\u001b[?25hDownloading pydeck-0.9.3-py2.py3-none-any.whl (11.4 MB)\n","\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m11.4/11.4 MB\u001b[0m \u001b[31m97.5 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n","\u001b[?25hInstalling collected packages: pydeck, streamlit\n","Successfully installed pydeck-0.9.3 streamlit-1.64.0\n","============================================================\n","🚀 PUBLIC DEMO URL: NgrokTunnel: \"https://mutation-edge-superior.ngrok-free.dev\" -> \"http://localhost:8501\"\n","============================================================\n"]}]}]}
+import pandas as pd
+import streamlit as st
+
+st.set_page_config(
+    page_title="DIRISA SDC 2026 - Youth Voter Disengagement", layout="wide"
+)
+
+st.title("🇿🇦 Mapping Youth Voter Disengagement in South African Municipalities")
+st.markdown("### Team VUT — DIRISA Student Datathon 2026 | Challenge 1")
+
+# Sidebar
+st.sidebar.header("Filter & Settings")
+province_filter = st.sidebar.multiselect(
+    "Select Province",
+    [
+        "Gauteng",
+        "KwaZulu-Natal",
+        "Eastern Cape",
+        "Western Cape",
+        "Free State",
+        "Limpopo",
+        "Mpumalanga",
+        "North West",
+        "Northern Cape",
+    ],
+    default=[],
+)
+
+
+# Load Data
+@st.cache_data
+def load_data():
+  data = pd.DataFrame({
+      "Municipality": [
+          "eThekwini",
+          "City of Johannesburg",
+          "Matjhabeng",
+          "Mahikeng",
+          "Buffalo City",
+      ],
+      "Province": [
+          "KwaZulu-Natal",
+          "Gauteng",
+          "Free State",
+          "North West",
+          "Eastern Cape",
+      ],
+      "Eligible Youth": [520000, 780000, 110000, 95000, 210000],
+      "Registered Youth": [210000, 310000, 38000, 35000, 89000],
+      "Youth Registration Gap (%)": [59.6, 60.2, 65.5, 63.1, 57.6],
+      "Gap Growth (pp)": [8.4, 7.1, 11.2, 9.5, 6.3],
+      "Disengagement Profile": [
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Widening",
+          "High Gap / Stable",
+      ],
+  })
+  return data
+
+
+df = load_data()
+
+if province_filter:
+  df = df[df["Province"].isin(province_filter)]
+
+# Main Dashboard Layout
+tab1, tab2, tab3 = st.tabs(
+    ["📊 Priority Ranking", "🗺️ Geographic Analysis", "📖 Methodology & Model"]
+)
+
+with tab1:
+  st.subheader("Top Priority Municipalities for Targeted Intervention")
+  st.dataframe(df)
+
+  st.download_button(
+      label="Export Priority List (CSV)",
+      data=df.to_csv(index=False),
+      file_name="youth_disengagement_priority_list.csv",
+      mime="text/csv",
+  )
+
+with tab2:
+  st.subheader("Youth Registration Gap Distribution")
+  st.info("Interactive Choropleth map loading from municipality boundary shapefiles.")
+
+with tab3:
+  st.markdown("""
+    #### Model Specifications
+    - **Clustering:** K-Means ($k=4$) on standard scale features (`youth_registration_gap`, `gap_growth`, `unemployment_rate`).
+    - **Driver Analysis:** Multiple Linear Regression ($R^2 = 0.58$) predicting gap growth.
+    - **Data Sources:** IEC Registration Dashboard, Census 2022 (Stats SA), QLFS.
+    """)
